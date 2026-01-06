@@ -11,7 +11,6 @@ import { useState } from 'react';
 import TaskForm from '@/components/TaskForm';
 import TaskList from '@/components/TaskList';
 import FilterControls from '@/components/FilterControls';
-import type { Task } from '@/types/task';
 
 export default function Home() {
   const [search, setSearch] = useState('');
@@ -19,7 +18,7 @@ export default function Home() {
   const [priorityFilter, setPriorityFilter] = useState('');
   const [sortFilter, setSortFilter] = useState('');
 
-  const handleTaskCreated = (task: Task) => {
+  const handleTaskCreated = () => {
     // The task list will automatically refresh due to the filter changes
     // We could add a simple visual feedback here if needed
   };

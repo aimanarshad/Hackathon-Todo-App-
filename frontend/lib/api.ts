@@ -27,7 +27,7 @@ export const taskApi = {
     search?: string;
     sort?: string;
   }): Promise<Task[]> => {
-    const url = `${API_BASE_URL}/tasks${buildQuery(params as any)}`;
+    const url = `${API_BASE_URL}/tasks${buildQuery(params )}`;
     const response = await fetch(url, { cache: 'no-store' }); // Important for real-time
 
     if (!response.ok) {
