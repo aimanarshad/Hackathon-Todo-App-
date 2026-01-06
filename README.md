@@ -1,46 +1,61 @@
-# Todo In-Memory Python Console App
+# Phase 2 Full-Stack Todo Web App
 
-A command-line todo application that stores tasks in memory with no persistence.
+This project implements a full-stack todo application with FastAPI backend and Next.js frontend. The solution transforms the Phase 1 console-based todo app into a persistent, multi-user web application with PostgreSQL database.
 
 ## Features
 
-1. **Add Task**: Prompt for title (required) and description (optional), generate unique ID, store in memory, print confirmation.
-2. **Delete Task**: List tasks, prompt for ID, remove if found, else error.
-3. **Update Task**: List tasks, prompt for ID, allow updating title and/or description (skip if empty), print updated.
-4. **View Task List**: Display formatted table (ID, Title, Description, Status: Completed/Incomplete), or message if empty.
-5. **Mark as Complete**: List tasks, prompt for ID, toggle completion, print new status.
+- **Core Task Management**: Create, read, update, delete, and mark tasks as complete
+- **Enhanced Features**: Priority levels (high/medium/low) and tags for better organization
+- **Advanced Organization**: Search, filter, and sort functionality
+- **Responsive UI**: Works on desktop and mobile devices
+- **API-First**: Clean REST API with full CRUD operations
 
-## Usage
+## Tech Stack
 
-Run the application with Python 3.13+:
+- **Backend**: FastAPI, SQLModel, PostgreSQL
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Database**: PostgreSQL (with Neon compatibility)
 
-```bash
-python main.py
+## API Endpoints
+
+- `GET /api/tasks` - List all tasks with optional filters and sorting
+- `POST /api/tasks` - Create a new task
+- `GET /api/tasks/{id}` - Get a specific task
+- `PUT /api/tasks/{id}` - Update a specific task
+- `DELETE /api/tasks/{id}` - Delete a specific task
+- `PATCH /api/tasks/{id}/complete` - Toggle task completion status
+
+## Environment Variables
+
+Create a `.env` file in the project root with:
+
+```
+DATABASE_URL=postgresql://user:password@localhost/todo_db
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-The application provides a menu-driven interface with the following options:
-- 1. Add Task
-- 2. Delete Task
-- 3. Update Task
-- 4. View Task List
-- 5. Mark as Complete
-- 6. Exit
+## Running the Application
 
-## Data Model
+### Backend (API Server)
 
-Each task is stored as a dictionary with the following structure:
-```python
-{
-    'id': int,           # Unique identifier for the task
-    'title': str,        # Required title of the task
-    'description': str,  # Optional description of the task (can be empty string)
-    'completed': bool    # Boolean indicating completion status
-}
-```
+1. Navigate to the `backend` directory
+2. Install dependencies: `pip install -r requirements.txt`
+3. Start the server: `uvicorn main:app --reload`
+4. The API will be available at `http://localhost:8000`
 
-## Architecture
+### Frontend (Web App)
 
-- Single-file application in `main.py`
-- In-memory storage using a global list
-- Modular functions for each feature
-- Menu-driven interface with error handling# Hackathon-Todo-App-
+1. Navigate to the `frontend` directory
+2. Install dependencies: `npm install`
+3. Start the development server: `npm run dev`
+4. The web app will be available at `http://localhost:3000`
+
+## Database Setup
+
+1. Ensure PostgreSQL is running
+2. Update the DATABASE_URL in your .env file
+3. The database tables will be created automatically on startup
+
+## Development
+
+The application follows a spec-driven development approach. All code is generated from the specifications in the `specs/` directory.

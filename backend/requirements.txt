@@ -1,0 +1,9 @@
+# Task T003: Create backend requirements.txt with FastAPI, SQLModel, and dependencies
+fastapi==0.104.1
+sqlmodel==0.0.8
+uvicorn==0.24.0
+pydantic==1.10.13
+pydantic-settings
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+python-multipart==0.0.6

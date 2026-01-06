@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ + Standard libraries only (no external dependencies) (001-todo-app)
 - In-memory only (no persistence) (001-todo-app)
+- Python 3.13+ (backend), TypeScript 5+ (frontend) + FastAPI + SQLModel (backend), Next.js 14+ (frontend), Neon PostgreSQL (001-full-stack-todo)
+- Neon Serverless PostgreSQL database with SQLModel ORM (001-full-stack-todo)
 
 ## Recent Changes
 - 001-todo-app: Added Python 3.13+ + Standard libraries only (no external dependencies)
