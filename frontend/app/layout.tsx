@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "/fonts/Geist-Regular.woff2",
+const geistSans = Geist({
+  subsets: ["latin"],
   variable: "--font-geist-sans",
   display: "swap",
 });
 
-const geistMono = localFont({
-  src: "/fonts/GeistMono-Regular.woff2",
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
   variable: "--font-geist-mono",
   display: "swap",
 });
