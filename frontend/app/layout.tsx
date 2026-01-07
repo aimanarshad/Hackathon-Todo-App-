@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
-import  localFont  from "next/font/local";
+import localFont from "next/font/local";
 import "./globals.css";
 
-// Load Geist Sans (regular) locally
 const geistSans = localFont({
-  src: "./public/fonts/Geist-Regular.woff2",
+  src: "/fonts/Geist-Regular.woff2",
   variable: "--font-geist-sans",
   display: "swap",
 });
 
-// Load Geist Mono (monospaced) locally
 const geistMono = localFont({
-  src: "./public/fonts/GeistMono-Regular.woff2",
+  src: "/fonts/GeistMono-Regular.woff2",
   variable: "--font-geist-mono",
   display: "swap",
 });
