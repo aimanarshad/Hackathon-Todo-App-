@@ -214,6 +214,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - In-memory only (no persistence) (001-todo-app)
 - Python 3.13+ (backend), TypeScript 5+ (frontend) + FastAPI + SQLModel (backend), Next.js 14+ (frontend), Neon PostgreSQL (001-full-stack-todo)
 - Neon Serverless PostgreSQL database with SQLModel ORM (001-full-stack-todo)
+- Python 3.13+ (backend), TypeScript 5+ (frontend) + FastAPI, SQLModel, Next.js 14+, google-generativeai, langchain, langchain-google-genai, langchain-core (001-ai-chatbot)
+- Neon Serverless PostgreSQL (reuse existing connection) (001-ai-chatbot)
 
 ## Recent Changes
 - 001-todo-app: Added Python 3.13+ + Standard libraries only (no external dependencies)

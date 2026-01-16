@@ -1,10 +1,62 @@
-<!-- SYNC IMPACT REPORT -->
-<!-- Version change: 1.1.0 (Phase 2) → 1.2.0 (Phase 3) -->
-<!-- Modified principles: Updated from Phase 2 to Phase 3 -->
-<!-- Added sections: Phase 3 Specific Principles, Technology Stack additions, Data Model Evolution additions, New repository structure -->
-<!-- Removed sections: None -->
-<!-- Templates requiring updates: ⚠ pending - .specify/templates/plan-template.md, .specify/templates/spec-template.md, .specify/templates/tasks-template.md -->
-<!-- Follow-up TODOs: None -->
+---
+id: 0001
+title: update-phase3-ai-chatbot
+stage: constitution
+date: 2026-01-14
+surface: agent
+model: claude-sonnet-4-5-20250929
+feature: none
+branch: main
+user: hc
+command: sp.constitution
+labels: ["constitution","phase3","ai-chatbot","todo-app"]
+links:
+  spec: null
+  ticket: null
+  adr: null
+  pr: null
+files:
+ - .specify/memory/constitution.md
+tests:
+ - none
+---
+
+## Prompt
+
+You are the system architect evolving the Hackathon II "Evolution of Todo" project to Phase 3: Todo AI Chatbot.
+
+The project lives in the existing folder ~/hackathon-todo and the same GitHub repo: https://github.com/aimanarshad/Hackathon-Todo-App
+
+IMPORTANT: You MUST NOT delete, modify, or overwrite ANY files or code from Phase 1 or Phase 2. All previous work (frontend Next.js app, backend FastAPI with tasks API, Neon DB Task model, etc.) must remain exactly as is. Only ADD new files and folders.
+
+Generate an UPDATED constitution.md that extends the current one.
+
+New Phase 3 Principles:
+- Add a conversational AI chatbot interface to the existing full-stack Todo web app.
+- Users manage tasks via natural language (add, list, complete, delete, update).
+- Use Google Gemini (gemini-1.5-flash or gemini-1.5-pro) via google-generativeai + LangChain for agentic logic and function calling.
+- Implement MCP-style server: FastAPI exposes stateless task tools (add_task, list_tasks, complete_task, delete_task, update_task).
+- Stateless chat endpoint: POST /api/chat (or /api/{user_id}/chat) that persists conversation history in Neon DB.
+- Conversation state stored in new DB models: Conversation and Message (do not touch existing Task model).
+- Agent uses tools to interact with existing tasks API or directly with DB.
+- No authentication yet (can use dummy user_id for now).
+
+Tech Stack Additions (only add, do not remove anything):
+- google-generativeai
+- langchain, langchain-google-genai, langchain-core
+- Use GEMINI_API_KEY from backend/.env
+
+Repository Structure (add only):
+- backend/agents/ → Gemini + LangChain agent logic
+- backend/mcp/ → MCP tool functions
+- backend/conversation_models.py → Conversation and Message models
+- backend/routers/chat.py → chat endpoint
+- frontend/app/chat/page.tsx → Chat interface (or similar)
+
+Output ONLY the full updated Markdown content for constitution.md.
+Start with # Project Constitution: Evolution of Todo - Phase 3 AI Chatbot
+
+## Response snapshot
 
 # Project Constitution: Evolution of Todo - Phase 3 AI Chatbot
 
@@ -129,3 +181,18 @@ Every line of new code in Phase 3 and beyond shall originate from refined specif
 Phase 3 builds upon the solid foundation of Phases 1 and 2, adding AI capabilities while maintaining all existing functionality. We commit to preserving backward compatibility and extending the application in a principled, specification-driven manner.
 
 This constitution governs Phase 3 and will be further evolved in subsequent phases.
+
+## Outcome
+
+- ✅ Impact: Updated project constitution to include Phase 3 AI Chatbot principles while preserving all previous functionality
+- 🧪 Tests: none
+- 📁 Files: Updated .specify/memory/constitution.md with new Phase 3 content
+- 🔁 Next prompts: Implementation of Phase 3 features according to the new constitution
+- 🧠 Reflection: Successfully extended the constitution to cover Phase 3 requirements while maintaining backward compatibility commitments
+
+## Evaluation notes (flywheel)
+
+- Failure modes observed: none
+- Graders run and results (PASS/FAIL): not applicable
+- Prompt variant (if applicable): not applicable
+- Next experiment (smallest change to try): Begin implementing Phase 3 features according to the new constitution
