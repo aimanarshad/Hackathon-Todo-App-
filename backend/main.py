@@ -1,8 +1,16 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import tasks
+from routers.chat import router as chat_router
+from database import create_db_and_tables
 
-app = FastAPI(title="Todo API", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+app = FastAPI(title="Todo API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -12,8 +20,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔹 FIXED ROUTER PREFIX
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
+
+# FIXED: Add prefix here!
+app.include_router(chat_router, tags=["chat"])
 
 @app.get("/")
 def read_root():
@@ -21,4 +31,4 @@ def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)  # ← note: you said 8001 earlier, decide one

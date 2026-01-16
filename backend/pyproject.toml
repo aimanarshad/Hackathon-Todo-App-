@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "backend"
 version = "0.1.0"
@@ -6,9 +10,19 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.128.0",
+    "google-generativeai>=0.8.6",
+    "langchain>=0.3.4",
+    "langchain-google-genai>=2.0.4",
+    "langchain-core>=0.3.15",
     "psycopg2-binary>=2.9.11",
     "python-dotenv>=1.2.1",
     "python-multipart>=0.0.21",
     "sqlmodel>=0.0.31",
     "uvicorn>=0.40.0",
+    "pydantic>=2.7.4",
+
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agents*", "mcp*", "routers*", "conversation_models*"]

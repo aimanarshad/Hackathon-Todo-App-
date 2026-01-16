@@ -5,7 +5,7 @@ import type { Task } from '@/types/task';
 
 // Use environment variable in production, fallback for local dev
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
 
 // Helper to build query string safely
 const buildQuery = (params?: Record<string, string | boolean | undefined>) => {

@@ -1,6 +1,7 @@
 # Task T010: Create database connection and session management in backend/database.py
 from sqlmodel import create_engine, Session, SQLModel
 from models import Task
+from conversation_models import Conversation, Message
 from typing import Generator
 import os
 from dotenv import load_dotenv
