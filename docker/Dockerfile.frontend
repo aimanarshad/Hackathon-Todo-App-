@@ -1,0 +1,143 @@
+
+# # Multi-stage Dockerfile for Next.js (optimized for production with standalone mode)
+
+# # Stage 1: Install dependencies (for caching)
+# FROM node:20-alpine AS deps
+# WORKDIR /app
+
+# # Copy only package files for better caching
+# COPY frontend/package*.json ./
+# RUN npm ci
+
+# # Stage 2: Build the app
+# FROM node:20-alpine AS builder
+# WORKDIR /app
+
+# # Copy dependencies from deps stage
+# COPY --from=deps /app/node_modules ./node_modules
+
+# # Copy source code
+# COPY frontend/ .
+
+# # Environment variables for build
+# ENV NEXT_TELEMETRY_DISABLED=1
+# ENV NODE_ENV=production
+
+# # Build the app (produces .next/standalone and .next/static)
+# RUN npm run build
+
+# # Stage 3: Production runtime (minimal image)
+# FROM node:20-alpine AS runner
+# WORKDIR /app
+
+# # Install dumb-init for proper signal handling and wget for healthcheck
+# RUN apk add --no-cache dumb-init wget
+
+# # Environment variables
+# ENV NODE_ENV=production
+# ENV NEXT_TELEMETRY_DISABLED=1
+# ENV PORT=3000
+
+# # Create non-root user
+# RUN addgroup --gid 1001 --system nodejs && \
+#     adduser --uid 1001 --system nextjs
+
+# # Copy only required files from builder (standalone mode)
+# COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
+# COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# # Switch to non-root user
+# USER nextjs
+
+# # Expose port
+# EXPOSE 3000
+
+# # Healthcheck using wget (lightweight and available in Alpine)
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+#   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# # Start the app with dumb-init
+# ENTRYPOINT ["dumb-init", "--"]
+# CMD ["node", "server.js"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ==============================================
+# Next.js production Dockerfile – Standalone mode
+# Typical size: 180–350 MB (depends on your app + assets)
+# ==============================================
+
+# ── Stage 1: Dependencies (caching layer) ──
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Copy lockfile + package.json first → excellent caching
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --production --frozen-lockfile
+
+# ── Stage 2: Builder ──
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Bring in node_modules from deps
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy rest of source
+COPY frontend/ .
+
+# Production build (must have output: 'standalone' in next.config.js)
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+RUN npm run build
+
+# ── Stage 3: Production runner (minimal) ──
+FROM node:20-alpine AS runner
+
+# Add minimal utils (dumb-init + curl for healthcheck)
+RUN apk add --no-cache dumb-init curl libc6-compat
+
+WORKDIR /app
+
+# Non-root user (security best practice)
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy only what's needed from builder (standalone output)
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public 2>/dev/null || true
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root
+USER nextjs
+
+# Environment
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
+
+EXPOSE 3000
+
+# Healthcheck (curl is usually smaller/lighter than wget in alpine)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/ || exit 1
+
+# Proper signal handling + start server
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]

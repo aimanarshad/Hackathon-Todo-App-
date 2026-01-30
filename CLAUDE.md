@@ -216,6 +216,10 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon Serverless PostgreSQL database with SQLModel ORM (001-full-stack-todo)
 - Python 3.13+ (backend), TypeScript 5+ (frontend) + FastAPI, SQLModel, Next.js 14+, google-generativeai, langchain, langchain-google-genai, langchain-core (001-ai-chatbot)
 - Neon Serverless PostgreSQL (reuse existing connection) (001-ai-chatbot)
+- Python 3.13+ (backend), TypeScript 5+ (frontend), Node.js 20+ + Docker, Kubernetes (Minikube), Helm, FastAPI, Next.js, Neon PostgreSQL (004-k8s-deployment)
+- Neon Serverless PostgreSQL (existing from Phase 2-3) (004-k8s-deployment)
+- Python 3.13+ (backend), TypeScript 5+ (frontend), Node.js 20+ (build tools) + FastAPI, SQLModel, Next.js 14+, Dapr, Kafka/Redpanda, kubectl, Helm, Docker, GitHub Actions (005-cloud-deployment)
+- Neon Serverless PostgreSQL (via Dapr State component) (005-cloud-deployment)
 
 ## Recent Changes
 - 001-todo-app: Added Python 3.13+ + Standard libraries only (no external dependencies)

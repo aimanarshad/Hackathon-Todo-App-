@@ -1,0 +1,16 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+  - name: connectionString
+    value: "{{.PG_CONN_STRING}}"  # Will be set via environment variable or secret
+  - name: versioning
+    value: "false"
+  - name: tableName
+    value: "dapr_state_store"
+  - name: actorStateStore
+    value: "true"

@@ -1,0 +1,12 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: jobs
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+  - name: route
+    value: "/process-recurring-tasks"
+  - name: schedule
+    value: "*/5 * * * *"  # Run every 5 minutes to check for recurring tasks

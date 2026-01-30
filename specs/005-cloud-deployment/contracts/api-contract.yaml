@@ -1,0 +1,262 @@
+# API Contract: Phase 5 Advanced Cloud Deployment
+
+## Overview
+
+This document defines the API contracts for the new features in Phase 5: recurring tasks and due date reminders. These extend the existing API from previous phases while maintaining backward compatibility.
+
+## Updated Task Model
+
+### Task Object Extension
+```json
+{
+  "id": 123,
+  "content": "Complete project proposal",
+  "completed": false,
+  "created_at": "2024-01-01T10:00:00Z",
+  "updated_at": "2024-01-01T10:00:00Z",
+  "user_id": 456,
+  "due_date": "2024-01-15T18:00:00Z",
+  "reminder_enabled": true,
+  "reminder_time": "2024-01-15T17:00:00Z",
+  "recurrence_pattern": "weekly",
+  "recurrence_interval": 1,
+  "recurrence_end_date": "2024-12-31T23:59:59Z",
+  "recurrence_parent_id": null,
+  "recurrence_next_instance": "2024-01-08T00:00:00Z",
+  "is_recurring_template": true,
+  "timezone": "America/Los_Angeles"
+}
+```
+
+## New API Endpoints
+
+### Recurring Tasks
+
+#### POST /api/v1/tasks/recurring
+Create a new recurring task template.
+
+**Request Body:**
+```json
+{
+  "content": "Weekly team meeting",
+  "due_date": "2024-01-08T10:00:00Z",
+  "recurrence_pattern": "weekly",
+  "recurrence_interval": 1,
+  "recurrence_end_date": "2024-12-31T23:59:59Z",
+  "reminder_enabled": true,
+  "reminder_time": "2024-01-08T09:00:00Z",
+  "timezone": "America/Los_Angeles"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 123,
+  "content": "Weekly team meeting",
+  "completed": false,
+  "created_at": "2024-01-01T10:00:00Z",
+  "updated_at": "2024-01-01T10:00:00Z",
+  "due_date": "2024-01-08T10:00:00Z",
+  "recurrence_pattern": "weekly",
+  "recurrence_interval": 1,
+  "recurrence_end_date": "2024-12-31T23:59:59Z",
+  "recurrence_next_instance": "2024-01-08T00:00:00Z",
+  "is_recurring_template": true,
+  "reminder_enabled": true,
+  "reminder_time": "2024-01-08T09:00:00Z",
+  "timezone": "America/Los_Angeles"
+}
+```
+
+#### GET /api/v1/tasks/recurring/{task_id}
+Get details of a recurring task template.
+
+**Response (200 OK):**
+```json
+{
+  "id": 123,
+  "content": "Weekly team meeting",
+  "completed": false,
+  "created_at": "2024-01-01T10:00:00Z",
+  "updated_at": "2024-01-01T10:00:00Z",
+  "due_date": "2024-01-08T10:00:00Z",
+  "recurrence_pattern": "weekly",
+  "recurrence_interval": 1,
+  "recurrence_end_date": "2024-12-31T23:59:59Z",
+  "recurrence_next_instance": "2024-01-08T00:00:00Z",
+  "is_recurring_template": true,
+  "reminder_enabled": true,
+  "reminder_time": "2024-01-08T09:00:00Z",
+  "timezone": "America/Los_Angeles",
+  "instances": [
+    {
+      "id": 456,
+      "content": "Weekly team meeting",
+      "original_task_id": 123,
+      "instance_date": "2024-01-08T00:00:00Z",
+      "completed": false
+    }
+  ]
+}
+```
+
+#### PUT /api/v1/tasks/recurring/{task_id}
+Update a recurring task template.
+
+**Request Body:**
+```json
+{
+  "content": "Updated weekly team meeting",
+  "recurrence_pattern": "weekly",
+  "recurrence_interval": 2,
+  "recurrence_end_date": "2025-12-31T23:59:59Z",
+  "reminder_enabled": true,
+  "reminder_time": "2024-01-08T09:30:00Z"
+}
+```
+
+**Response (200 OK):**
+Same as GET response.
+
+#### DELETE /api/v1/tasks/recurring/{task_id}
+Delete a recurring task template (stops future instances from being created).
+
+**Response (204 No Content)**
+
+### Reminders
+
+#### POST /api/v1/tasks/{task_id}/reminders
+Schedule a reminder for a task.
+
+**Request Body:**
+```json
+{
+  "reminder_time": "2024-01-15T17:00:00Z",
+  "reminder_type": "due_date",
+  "delivery_method": "email"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 789,
+  "task_id": 123,
+  "scheduled_time": "2024-01-15T17:00:00Z",
+  "delivery_status": "pending",
+  "reminder_type": "due_date",
+  "delivery_method": "email",
+  "created_at": "2024-01-01T10:00:00Z"
+}
+```
+
+#### GET /api/v1/reminders/upcoming
+Get all upcoming reminders for the authenticated user.
+
+**Response (200 OK):**
+```json
+[
+  {
+    "id": 789,
+    "task_id": 123,
+    "task_content": "Complete project proposal",
+    "scheduled_time": "2024-01-01T17:00:00Z",
+    "delivery_status": "pending",
+    "reminder_type": "due_date",
+    "delivery_method": "email",
+    "created_at": "2024-01-01T10:00:00Z"
+  }
+]
+```
+
+#### PUT /api/v1/reminders/{reminder_id}/cancel
+Cancel a scheduled reminder.
+
+**Response (200 OK):**
+```json
+{
+  "id": 789,
+  "task_id": 123,
+  "scheduled_time": "2024-01-15T17:00:00Z",
+  "delivery_status": "cancelled",
+  "cancelled_at": "2024-01-01T11:00:00Z"
+}
+```
+
+### Event Streams
+
+#### GET /api/v1/events/task-stream
+Server-sent events stream for real-time task updates.
+
+**Response (200 OK):**
+```
+data: {"event_type": "task_created", "task_id": 123, "timestamp": "2024-01-01T10:00:00Z", "user_id": 456}
+
+data: {"event_type": "task_updated", "task_id": 123, "timestamp": "2024-01-01T10:05:00Z", "user_id": 456, "changes": {"completed": true}}
+
+retry: 10000
+```
+
+## Error Responses
+
+All endpoints return standard error responses:
+
+**400 Bad Request:**
+```json
+{
+  "error": "validation_error",
+  "message": "Invalid input data",
+  "details": [
+    {
+      "field": "due_date",
+      "message": "Due date must be in the future"
+    }
+  ]
+}
+```
+
+**401 Unauthorized:**
+```json
+{
+  "error": "unauthorized",
+  "message": "Authentication required"
+}
+```
+
+**404 Not Found:**
+```json
+{
+  "error": "not_found",
+  "message": "Resource not found"
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "error": "internal_error",
+  "message": "An unexpected error occurred"
+}
+```
+
+## Dapr Integration Endpoints
+
+### Dapr Pub/Sub Subscription
+The service subscribes to Kafka topics for event processing:
+
+**Task Events Topic:** `task-events`
+**Reminder Events Topic:** `reminders`
+**Task Updates Topic:** `task-updates`
+
+The service implements the Dapr pub/sub contract for consuming these events.
+
+## Backward Compatibility
+
+All existing API endpoints from previous phases continue to function unchanged:
+- `GET /api/v1/tasks` - Returns all tasks including recurring instances
+- `POST /api/v1/tasks` - Creates a standard task (not recurring)
+- `PUT /api/v1/tasks/{id}` - Updates a task
+- `DELETE /api/v1/tasks/{id}` - Deletes a task
+
+The new recurring task and reminder features are completely additive and don't modify existing functionality.

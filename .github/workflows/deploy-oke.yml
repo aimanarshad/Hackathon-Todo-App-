@@ -1,0 +1,177 @@
+name: Deploy to Oracle Kubernetes Engine
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository_owner }}
+  IMAGE_NAME: todo-app
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements-test.txt
+
+    - name: Run backend tests
+      run: |
+        cd backend
+        python -m pytest tests/ -v
+
+    - name: Run linting
+      run: |
+        cd backend
+        python -m flake8 src/
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata for backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/todo-backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{env.SHA_SHORT}}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Extract metadata for frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/todo-frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{env.SHA_SHORT}}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push backend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./docker/backend/Dockerfile
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+
+    - name: Build and push frontend
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./docker/frontend/Dockerfile
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+
+  deploy-to-oke:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install Oracle Cloud CLI
+      run: |
+        curl -L https://download.oracle.com/otn_software/linux/instantclient/instantclient-basic-linux.x64.zip -o instantclient.zip
+        unzip instantclient.zip
+        sudo apt-get update
+        sudo apt-get install -y libaio1 wget unzip
+        echo '/opt/oracle/instantclient_*/' | sudo tee -a /etc/ld.so.conf.d/oracle-instantclient.conf
+        sudo ldconfig
+
+    - name: Install OCI CLI
+      run: |
+        bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)" -- --accept-all-defaults --non-interactive
+        echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Configure OCI CLI
+      run: |
+        mkdir -p ~/.oci
+        echo "${{ secrets.OCI_CONFIG }}" | base64 -d > ~/.oci/config
+        echo "${{ secrets.OCI_PRIVATE_KEY }}" | base64 -d > ~/.oci/key.pem
+        chmod 600 ~/.oci/key.pem
+        chmod 600 ~/.oci/config
+
+    - name: Get OKE Kubeconfig
+      run: |
+        oci ce cluster create-kubeconfig --cluster-id ${{ secrets.OKE_CLUSTER_ID }} --file $HOME/.kube/config --region ${{ secrets.OCI_REGION }} --token-version 2.0.0
+
+    - name: Update Helm values with new image tags
+      run: |
+        # Replace image tags in Helm values with the ones just built
+        sed -i "s|tag:.*|tag: ${{ github.sha }}|" charts/todo-app/values.yaml
+        sed -i "s|repository:.*backend|repository: ${{ env.REGISTRY }}/todo-backend|" charts/todo-app/values.yaml
+        sed -i "s|repository:.*frontend|repository: ${{ env.REGISTRY }}/todo-frontend|" charts/todo-app/values.yaml
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0
+
+    - name: Add Dapr Helm repo
+      run: |
+        helm repo add dapr https://dapr.github.io/helm-charts/
+        helm repo update
+
+    - name: Install Dapr on cluster
+      run: |
+        helm install dapr dapr/dapr --namespace dapr-system --create-namespace --wait
+
+    - name: Deploy application with Helm
+      run: |
+        helm upgrade --install todo-app ./charts/todo-app \
+          --namespace todo-app --create-namespace \
+          --set backend.image.tag=${{ github.sha }} \
+          --set frontend.image.tag=${{ github.sha }} \
+          --set dapr.enabled=true \
+          --wait
+
+    - name: Verify deployment
+      run: |
+        kubectl get pods -n todo-app
+        kubectl rollout status deployment/todo-app-backend -n todo-app
+        kubectl rollout status deployment/todo-app-frontend -n todo-app
+
+  notify-success:
+    needs: deploy-to-oke
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+    - name: Notify deployment success
+      run: echo "Successfully deployed to OKE!"

@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker.backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    # environment:
+    #   - DATABASE_URL=postgresql://...
+    #   - SECRET_KEY=...
+
+networks:
+  default:
