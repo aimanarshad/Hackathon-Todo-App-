@@ -147,3 +147,4 @@ The application follows a spec-driven development approach. All code is generate
 - Kubernetes orchestration with Helm
 - Dapr for portable distributed applications
 - CI/CD pipeline for automated deployment
+# Todo-App
